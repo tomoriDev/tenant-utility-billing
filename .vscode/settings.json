@@ -4,7 +4,8 @@
         "ngOnInit": true
     },
     "angular-*": {
-        "externalTemplate": true
+        "externalTemplate": true,
+        "style": "scss"
     }
 }
 }

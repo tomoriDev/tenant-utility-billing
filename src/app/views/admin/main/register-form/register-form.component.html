@@ -1,4 +1,4 @@
-<form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="p-4 space-y-6">
+<form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="p-4 ">
   <h2 class="text-xl text-center font-bold text-gray-800 mb-5">
     Registro inicial
   </h2>
@@ -12,7 +12,7 @@
     </mat-form-field>
   </div>
 
-  <div formArrayName="tenants" class="max-h-[368px] overflow-y-auto">
+  <div formArrayName="tenants" class="max-h-[60vh] overflow-y-auto">
     @for (tenant of tenants.controls; track $index) {
     <div
       [formGroupName]="$index"

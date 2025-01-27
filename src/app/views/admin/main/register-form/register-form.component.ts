@@ -64,7 +64,6 @@ export class RegisterFormComponent {
   onSubmit(): void {
     if (this.registerForm.valid) {
       this.dialogRef.close(this.registerForm.value);
-      console.log(this.registerForm.value);
     }
   }
 }

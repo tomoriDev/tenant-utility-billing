@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, type OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { NavbarComponent } from "../components/navbar/navbar.component";
+import { NavbarComponent } from '../components/navbar/navbar.component';
 
 @Component({
   selector: 'app-admin',
@@ -10,6 +10,6 @@ import { NavbarComponent } from "../components/navbar/navbar.component";
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminComponent implements OnInit {
+export default class AdminComponent implements OnInit {
   ngOnInit(): void {}
 }

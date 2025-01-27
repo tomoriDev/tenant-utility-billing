@@ -1,0 +1,77 @@
+<form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="p-4 space-y-6">
+  <h2 class="text-xl text-center font-bold text-gray-800 mb-5">
+    Registro inicial
+  </h2>
+
+  <div class="w-full text-center">
+    <mat-form-field appearance="fill" class="w-4/5">
+      <mat-label>Fecha de Emisión</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="emissionDate" />
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
+  <div formArrayName="tenants" class="max-h-[368px] overflow-y-auto">
+    @for (tenant of tenants.controls; track $index) {
+    <div
+      [formGroupName]="$index"
+      class="flex flex-col md:flex-row gap-4 items-start md:items-center p-4 bg-gray-50 rounded-lg"
+    >
+      <div class="flex justify-between items-center w-full">
+        <div class="text-sm text-gray-600">Inquilino #{{ $index + 1 }}</div>
+        <div
+          class="text-red-600 underline cursor-pointer ml-4"
+          (click)="removeTenant($index)"
+        >
+          <span class="text-sm font-medium">Eliminar</span>
+        </div>
+      </div>
+
+      <mat-form-field appearance="fill" class="w-full md:w-2/5">
+        <mat-label>Nombre</mat-label>
+        <input
+          matInput
+          formControlName="name"
+          placeholder="Nombre del inquilino"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Última Lectura</mat-label>
+        <input
+          matInput
+          type="number"
+          formControlName="lastReading"
+          placeholder="Lectura"
+        />
+      </mat-form-field>
+    </div>
+    } @empty {
+    <div class="text-center p-4 text-gray-500">No hay inquilinos agregados</div>
+    }
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-4 justify-between mt-4 px-2">
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="addTenant()"
+      class="w-full sm:w-auto"
+    >
+      <mat-icon class="mr-2">add</mat-icon>
+      Agregar Inquilino
+    </button>
+
+    <button
+      mat-raised-button
+      color="accent"
+      type="submit"
+      [disabled]="!registerForm.valid || tenants.length === 0"
+      class="w-full sm:w-auto"
+    >
+      Comenzar
+    </button>
+  </div>
+</form>

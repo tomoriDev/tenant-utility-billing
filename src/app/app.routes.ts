@@ -8,18 +8,18 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    loadComponent: () => import('@app/layout/admin/admin.component').then((m) => m.AdminComponent),
+    loadComponent: () => import('@app/layout/admin/admin.component'),
     children: [
       {
         path: '',
         redirectTo: 'main',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
       {
         path: 'main',
-        loadComponent: () => import('@app/views/admin/main/main.component').then((m) => m.MainComponent),
-      }
-    ]
+        loadComponent: () => import('@app/views/admin/main/main.component'),
+      },
+    ],
   },
   {
     path: '**',

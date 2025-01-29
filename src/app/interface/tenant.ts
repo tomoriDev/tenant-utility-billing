@@ -29,6 +29,7 @@ export interface MonthlyBill {
 }
 
 export interface TenantReading {
+  name: string;
   previousReading: number;
   currentReading: number;
   consumption: number;

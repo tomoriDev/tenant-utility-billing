@@ -6,8 +6,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { DataService } from '@app/services/data.service';
 import { CommonModule } from '@angular/common';
 import { RegisterMonthComponent } from './register-month/register-month.component';
-import { FirebaseService } from '@app/services/firebase.service';
-
+import { UserHttpService } from '@app/http/user.service';
+import { BillingHttpService } from '@app/http/billing.service';
 @Component({
   selector: 'app-main',
   imports: [ReactiveFormsModule, CommonModule, MatExpansionModule],
@@ -22,7 +22,8 @@ export default class MainComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     public dataService: DataService,
-    public firebaseService: FirebaseService
+    public billingHttp: BillingHttpService,
+    public userHttp: UserHttpService
   ) {}
   ngOnInit(): void {
     // this.openModal();
@@ -30,7 +31,7 @@ export default class MainComponent implements OnInit {
   }
 
   async getUserData(): Promise<void> {
-    const userData = await this.firebaseService.getUserData('123');
+    const userData = await this.userHttp.getUserData('123');
     this.dataService.mainData.set(userData);
     console.log(userData);
   }
@@ -61,10 +62,31 @@ export default class MainComponent implements OnInit {
       data: this.dataService.mainData(),
     });
 
-    dialogRef.afterClosed().subscribe((result: any) => {
+    dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
-        console.log(this.dataService.mainData());
-        console.log('Modal closed with data:', this.formData);
+        console.log(result);
+        console.log('Modal closed with data:', result);
+        await this.billingHttp.setMonthlyBilling('123', '2025', '01', {
+          totalAmount: 1600,
+          totalKwh: 388,
+          readings: {
+            tenant1: {
+              consumption: 200,
+              currentReading: 2000,
+              name: 'Felicia Mori',
+              previousReading: 8800,
+              readingDate: new Date(),
+            },
+            tenant2: {
+              consumption: 188,
+              currentReading: 10000,
+              name: 'John Doe',
+              previousReading: 9888,
+              readingDate: new Date(),
+            }
+          },
+          timestamp: new Date(),
+        });
       }
     });
   }

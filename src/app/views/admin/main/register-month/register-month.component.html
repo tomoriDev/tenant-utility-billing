@@ -1,1 +1,83 @@
-<p>register-month works!</p>,
+<form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="p-4">
+  <h2 class="text-xl text-center font-bold text-gray-800 mb-5">
+    {{ data.month }} {{ data.year }}
+  </h2>
+
+  <div class="w-full text-center">
+    <mat-form-field appearance="fill" class="w-4/5">
+      <mat-label>Total a pagar</mat-label>
+      <input
+        matInput
+        type="number"
+        formControlName="totalAmountToPay"
+        placeholder="Lectura"
+      />
+    </mat-form-field>
+  </div>
+
+  <div class="w-full text-center">
+    <mat-form-field appearance="fill" class="w-4/5">
+      <mat-label>Consumo kwh</mat-label>
+      <input
+        matInput
+        type="number"
+        formControlName="kwhConsumption"
+        placeholder="Lectura"
+      />
+    </mat-form-field>
+  </div>
+
+  <div formArrayName="tenants" class="max-h-[54svh] overflow-y-auto">
+    @for (tenant of tenants.controls; track $index) {
+    <hr />
+    <div
+      [formGroupName]="$index"
+      class="flex flex-col gap-2 md:flex-row items-start md:items-center p-4 bg-gray-50 rounded-lg"
+    >
+      <div class="text-md text-gray-700">
+        {{ this.data.tenants[$index].name }} (Inquilino #{{ $index + 1 }})
+      </div>
+      <div class="text-sm text-gray-600">
+        Lectura anterior: <b>{{ this.data.tenants[$index].lastReading }} kwh</b>
+      </div>
+
+      <div class="w-full text-center">
+        <mat-form-field appearance="fill" class="w-full" class="mt-2">
+          <mat-label>Nueva lectura (kwh)</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="newReading"
+            placeholder="Lectura"
+          />
+        </mat-form-field>
+      </div>
+    </div>
+    } @empty {
+    <div class="text-center p-4 text-gray-500">No hay inquilinos agregados</div>
+    }
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-4 justify-between mt-4 px-2">
+    <button
+      mat-button
+      (click)="onCancel()"
+      color="warn"
+      class="w-full sm:w-auto"
+    >
+      <mat-icon class="mr-2">close</mat-icon>
+      Cancelar
+    </button>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="!tenants.valid"
+      class="w-full sm:w-auto"
+    >
+      <mat-icon class="mr-2">save</mat-icon>
+      Registrar
+    </button>
+  </div>
+</form>

@@ -3,7 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterFormComponent } from './register-form/register-form.component';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { DataService } from '@app/services/data.service';
+import { DataService, DataStatus } from '@app/services/data.service';
 import { CommonModule } from '@angular/common';
 import { RegisterMonthComponent } from './register-month/register-month.component';
 import { UserHttpService } from '@app/http/user.service';
@@ -27,7 +27,9 @@ export default class MainComponent implements OnInit {
 
   currentYear = 2025;
 
-  months = ['Enero', 'Febrero', 'Marzo'];
+  months = ['01', '02', '03'];
+
+  DataStatus = DataStatus;
 
   constructor(
     private dialog: MatDialog,
@@ -35,15 +37,20 @@ export default class MainComponent implements OnInit {
     public billingHttp: BillingHttpService,
     public userHttp: UserHttpService
   ) {}
+
   ngOnInit(): void {
-    // this.openModal();
     this.getUserData();
   }
 
   async getUserData(): Promise<void> {
-    const userData = await this.userHttp.getUserData('123');
-    this.dataService.mainData.set(userData);
-    console.log(userData);
+    this.dataService.setLoading(this.dataService.mainData);
+    try {
+      const userData = await this.userHttp.getUserData('123');
+      this.dataService.setSuccess(this.dataService.mainData, userData);
+      this.dataService.setDataSource(this.dataService.mainData, userData);
+    } catch (error) {
+      this.dataService.setError(this.dataService.mainData, error as never);
+    }
   }
 
   private openModal(): void {
@@ -69,7 +76,7 @@ export default class MainComponent implements OnInit {
       disableClose: true,
       position: { top: '20px' },
       maxHeight: '90vh',
-      data: this.dataService.mainData(),
+      data: this.dataService.mainData().data,
     });
 
     dialogRef.afterClosed().subscribe(async (result: any) => {

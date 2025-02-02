@@ -1,9 +1,15 @@
-import { ChangeDetectionStrategy, Component, input, Input, type OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  type OnInit,
+} from '@angular/core';
 import { MonthlyBill } from '@app/interface/tenant';
 
 @Component({
   selector: 'app-month-detail',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './month-detail.component.html',
   styleUrl: './month-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -11,7 +17,6 @@ import { MonthlyBill } from '@app/interface/tenant';
 })
 export class MonthDetailComponent implements OnInit {
   monthDetail = input({} as MonthlyBill);
-  
-  ngOnInit(): void {}
 
+  ngOnInit(): void {}
 }

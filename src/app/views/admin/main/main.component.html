@@ -7,12 +7,16 @@
         <mat-panel-description>{{ currentYear }}</mat-panel-description>
       </mat-expansion-panel-header>
 
-      <app-month-detail />
+      <app-month-detail
+        [monthDetail]="
+          dataService.mainData()!.data?.billing![currentYear]![month]
+        "
+      />
       <button (click)="openRegisterMonthModal()">Agregar datos</button>
     </mat-expansion-panel>
   </div>
-
+  {{ month | json }}
   }
 </div>
 
-{{ dataService.mainData() | json }}
+{{ dataService.mainData().data | json }}

@@ -80,24 +80,26 @@ export default class MainComponent implements OnInit {
           totalAmount: 1600,
           totalKwh: 388,
           priceKwh: 4.12,
-          readings: {
-            tenant1: {
-              consumption: 200,
-              currentReading: 2000,
-              previousReading: 1800,
-              amount: 64.23,
-              name: 'Felicia Mori',
+          readings: [
+            {
+              id: 'tenant1',
+              consumption: 100,
+              currentReading: 100,
+              previousReading: 100,
+              amount: 100.23,
+              name: 'Felicia Mori 100',
               readingDate: new Date(),
             },
-            tenant2: {
-              consumption: 188,
-              currentReading: 10000,
-              name: 'John Doe',
-              amount: 64.23,
-              previousReading: 9888,
+            {
+              id: 'tenant2',
+              consumption: 100,
+              currentReading: 100,
+              name: 'John Doe 100',
+              amount: 100.23,
+              previousReading: 100,
               readingDate: new Date(),
             },
-          },
+          ],
           timestamp: new Date(),
         });
       }

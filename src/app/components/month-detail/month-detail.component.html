@@ -2,30 +2,56 @@
   <div class="flex flex-col">
     <span class="text-gray-500 text-sm">Precio total</span>
     <span class="text-lg md:text-xl font-semibold text-gray-800">
-      S/298.21
+      S/&nbsp;{{ monthDetail().totalAmount }}
     </span>
   </div>
   <div class="hidden md:block w-px h-6 bg-gray-300"></div>
   <div class="flex flex-col">
     <span class="text-gray-500 text-sm">Total KWh</span>
-    <span class="text-lg md:text-xl font-semibold text-gray-800"> 340 </span>
+    <span class="text-lg md:text-xl font-semibold text-gray-800">
+      {{ monthDetail().totalKwh }}
+    </span>
   </div>
   <div class="hidden md:block w-px h-6 bg-gray-300"></div>
   <div class="flex flex-col">
     <span class="text-gray-500 text-sm">Precio KWh</span>
-    <span class="text-lg md:text-xl font-semibold text-gray-800"> 0.876 </span>
+    <span class="text-lg md:text-xl font-semibold text-gray-800">
+      S/ {{ monthDetail().priceKwh }}
+    </span>
   </div>
 </div>
 
-<hr class="my-3" />
+@for (reading of monthDetail().readings; track reading) {
+
+<!-- <div class="flex flex-row justify-between align-middle items-center">
+  <div class="flex flex-col">
+    <span class="text-gray-500 text-sm"> {{ reading.date }} </span>
+    <span class="text-lg font-semibold text-gray-800">
+      {{ reading.kwh }} Kwh
+    </span>
+  </div>
+
+  <div class="flex flex-col">
+    <span class="text-lg font-semibold text-gray-800"
+      >S/ {{ reading.amount }}</span
+    >
+  </div>
+</div> -->
+} @empty {
+<div class="text-center p-4 text-gray-500">No hay inquilinos agregados</div>
+}
+
+<!-- <hr class="my-3" />
 
 <div class="flex flex-row justify-between align-middle items-center">
   <div class="flex flex-col">
-    <span class="text-gray-500 text-sm"> Carlos Torres (05/01 - 15/01) </span>
+    <span class="text-gray-500 text-sm">
+      {{ monthDetail(). }} (05/01 - 15/01)
+    </span>
     <span class="text-lg font-semibold text-gray-800"> 50Kwh </span>
   </div>
 
   <div class="flex flex-col">
     <span class="text-lg font-semibold text-gray-800">S/ 61.23</span>
   </div>
-</div>
+</div> -->

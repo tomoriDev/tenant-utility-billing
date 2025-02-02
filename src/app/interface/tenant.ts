@@ -24,12 +24,11 @@ export interface MonthlyBill {
   totalKwh: number;
   timestamp: Date;
   priceKwh: number;
-  readings: {
-    [tenantId: string]: TenantReading;
-  };
+  readings: TenantReading[];
 }
 
 export interface TenantReading {
+  id: string;
   name: string;
   previousReading: number;
   currentReading: number;

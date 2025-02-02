@@ -55,9 +55,16 @@ export class UserHttpService {
         const readingsRef = collection(monthDoc.ref, 'readings');
         const readingsSnap = await getDocs(readingsRef);
 
-        const readings: { [key: string]: TenantReading } = {};
+        // const readings: { [key: string]: TenantReading } = {};
+        // readingsSnap.forEach((readingDoc) => {
+        //   readings[readingDoc.id] = readingDoc.data() as TenantReading;
+        // });
+
+        const readings: TenantReading[] = [];
         readingsSnap.forEach((readingDoc) => {
-          readings[readingDoc.id] = readingDoc.data() as TenantReading;
+          const reading = readingDoc.data() as TenantReading;
+          reading.id = readingDoc.id
+          readings.push(reading);
         });
 
         yearlyData[monthDoc.id] = {

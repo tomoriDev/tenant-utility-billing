@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, Input, type OnInit } from '@angular/core';
+import { MonthlyBill } from '@app/interface/tenant';
 
 @Component({
   selector: 'app-month-detail',
@@ -9,5 +10,8 @@ import { ChangeDetectionStrategy, Component, type OnInit } from '@angular/core';
   standalone: true,
 })
 export class MonthDetailComponent implements OnInit {
+  monthDetail = input({} as MonthlyBill);
+  
   ngOnInit(): void {}
+
 }

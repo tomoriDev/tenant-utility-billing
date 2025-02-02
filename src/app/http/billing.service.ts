@@ -1,18 +1,6 @@
 import { Injectable } from '@angular/core';
-import {
-  Firestore,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-} from '@angular/fire/firestore';
-import {
-  ITenant,
-  MonthlyBill,
-  TenantReading,
-  YearlyBilling,
-} from '../interface/tenant';
+import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
+import { MonthlyBill } from '../interface/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -41,11 +29,11 @@ export class BillingHttpService {
       { merge: true }
     );
 
-    if (data.readings) {
+    if (data.readings && Array.isArray(data.readings)) {
       const readingsCollection = collection(monthRef, 'readings');
       await Promise.all(
-        Object.entries(data.readings).map(([tenantId, reading]) =>
-          setDoc(doc(readingsCollection, tenantId), reading, { merge: true })
+        data.readings.map((reading) =>
+          setDoc(doc(readingsCollection, reading.id), reading, { merge: true })
         )
       );
     }

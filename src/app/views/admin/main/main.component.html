@@ -1,22 +1,18 @@
-<mat-expansion-panel togglePosition="before">
-  <mat-expansion-panel-header>
-    <mat-panel-title> Enero </mat-panel-title>
-    <mat-panel-description> 2025 </mat-panel-description>
-  </mat-expansion-panel-header>
+<div class="p-3">
+  @for (month of months; track month) {
+  <div class="mt-5">
+    <mat-expansion-panel togglePosition="before">
+      <mat-expansion-panel-header>
+        <mat-panel-title>{{ month }}</mat-panel-title>
+        <mat-panel-description>{{ currentYear }}</mat-panel-description>
+      </mat-expansion-panel-header>
 
-  <p>This is the primary content of the panel.</p>
-  <button (click)="openRegisterMonthModal()">
-    Agregar datos
-  </button>
-</mat-expansion-panel>
+      <app-month-detail />
+      <button (click)="openRegisterMonthModal()">Agregar datos</button>
+    </mat-expansion-panel>
+  </div>
 
-<mat-expansion-panel togglePosition="before">
-  <mat-expansion-panel-header>
-    <mat-panel-title> Febrero </mat-panel-title>
-    <mat-panel-description> 2025 </mat-panel-description>
-  </mat-expansion-panel-header>
-
-  <p>This is the primary content of the panel.</p>
-</mat-expansion-panel>
+  }
+</div>
 
 {{ dataService.mainData() | json }}

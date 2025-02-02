@@ -26,17 +26,17 @@ export class BillingHttpService {
     month: string,
     data: MonthlyBill
   ): Promise<void> {
-    // Ensure year document exists
     const yearRef = doc(this.firestore, `users/${userId}/billing/${year}`);
     await setDoc(yearRef, {}, { merge: true });
 
-    // Set month data
     const monthRef = doc(yearRef, `months/${month}`);
     await setDoc(
       monthRef,
       {
         totalAmount: data.totalAmount,
         totalKwh: data.totalKwh,
+        priceKwh: data.priceKwh,
+        timestamp: new Date(),
       },
       { merge: true }
     );

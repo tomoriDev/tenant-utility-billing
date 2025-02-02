@@ -1,8 +1,12 @@
 export interface ITenant {
   firebaseId: string;
   name: string;
-  lastComsumption: number;
+  initialReading: number;
   createdAt: Date;
+  active: boolean;
+  initialEmissionDate: Date;
+  deactivatedAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface FirestoreTenant {
@@ -24,15 +28,17 @@ export interface MonthlyBill {
   totalKwh: number;
   timestamp: Date;
   priceKwh: number;
+  month?: string;  // Agregar para referencia
+  year?: string;   // Agregar para referencia
   readings: TenantReading[];
 }
 
 export interface TenantReading {
-  id: string;
+  tenantId: string;
   name: string;
-  previousReading: number;
   currentReading: number;
+  previousReading: number;  // Agregar para referencia histórica
   consumption: number;
-  readingDate: Date;
   amount: number;
+  readingDate: Date;
 }

@@ -9,6 +9,7 @@ import { RegisterMonthComponent } from './register-month/register-month.componen
 import { UserHttpService } from '@app/http/user.service';
 import { BillingHttpService } from '@app/http/billing.service';
 import { MonthDetailComponent } from '@app/components/month-detail/month-detail.component';
+import { TenantService } from '@app/services/tenant.service';
 @Component({
   selector: 'app-main',
   imports: [
@@ -31,16 +32,21 @@ export default class MainComponent implements OnInit {
 
   DataStatus = DataStatus;
 
+  lastReadings = new Map<string, number>();
+
   constructor(
     private dialog: MatDialog,
     public dataService: DataService,
     public billingHttp: BillingHttpService,
-    public userHttp: UserHttpService
+    public userHttp: UserHttpService,
+    private tenantService: TenantService
   ) {}
 
   ngOnInit(): void {
+    // this.openModal();
     this.getUserData();
   }
+
 
   async getUserData(): Promise<void> {
     this.dataService.setLoading(this.dataService.mainData);
@@ -48,6 +54,7 @@ export default class MainComponent implements OnInit {
       const userData = await this.userHttp.getUserData('123');
       this.dataService.setSuccess(this.dataService.mainData, userData);
       this.dataService.setDataSource(this.dataService.mainData, userData);
+      console.log(this.dataService.mainData().data);
     } catch (error) {
       this.dataService.setError(this.dataService.mainData, error as never);
     }
@@ -61,11 +68,26 @@ export default class MainComponent implements OnInit {
       maxHeight: '90vh',
     });
 
-    dialogRef.afterClosed().subscribe((result: any) => {
+    dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
-        this.dataService.mainData.set(result);
-        this.formData = result;
-        console.log('Modal closed with data:', this.formData);
+        try {
+          // Registrar cada tenant
+          const promises = result.tenants.map((tenant: any) => 
+            this.tenantService.createTenant('123', {
+              name: tenant.name,
+              initialReading: tenant.lastReading,
+              initialEmissionDate: result.emissionDate
+            })
+          );
+
+          await Promise.all(promises);
+          
+          // Actualizar los datos
+          await this.getUserData();
+        } catch (error) {
+          console.error('Error registering tenants:', error);
+          // Aquí podrías mostrar un mensaje de error
+        }
       }
     });
   }
@@ -76,39 +98,35 @@ export default class MainComponent implements OnInit {
       disableClose: true,
       position: { top: '20px' },
       maxHeight: '90vh',
-      data: this.dataService.mainData().data,
+      data: {
+        ...this.dataService.mainData().data,
+        month: '01',
+        year: '2025'
+      },
     });
 
     dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
-        console.log(result);
-        console.log('Modal closed with data:', result);
-        await this.billingHttp.setMonthlyBilling('123', '2025', '01', {
-          totalAmount: 1600,
-          totalKwh: 388,
-          priceKwh: 4.12,
-          readings: [
+        try {
+          await this.billingHttp.setMonthlyBilling(
+            '123', 
+            result.year, 
+            result.month, 
             {
-              id: 'tenant1',
-              consumption: 100,
-              currentReading: 100,
-              previousReading: 100,
-              amount: 100.23,
-              name: 'Felicia Mori 100',
-              readingDate: new Date(),
-            },
-            {
-              id: 'tenant2',
-              consumption: 100,
-              currentReading: 100,
-              name: 'John Doe 100',
-              amount: 100.23,
-              previousReading: 100,
-              readingDate: new Date(),
-            },
-          ],
-          timestamp: new Date(),
-        });
+              totalAmount: result.totalAmountToPay,
+              totalKwh: result.totalKwhConsumption,
+              priceKwh: result.pricePerKwh,
+              readings: result.readings,
+              timestamp: result.timestamp,
+              month: result.month,
+              year: result.year
+            }
+          );
+          
+          await this.getUserData();
+        } catch (error) {
+          console.error('Error saving billing:', error);
+        }
       }
     });
   }

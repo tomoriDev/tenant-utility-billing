@@ -54,16 +54,10 @@ export class UserHttpService {
       monthsSnap.docs.map(async (monthDoc) => {
         const readingsRef = collection(monthDoc.ref, 'readings');
         const readingsSnap = await getDocs(readingsRef);
-
-        // const readings: { [key: string]: TenantReading } = {};
-        // readingsSnap.forEach((readingDoc) => {
-        //   readings[readingDoc.id] = readingDoc.data() as TenantReading;
-        // });
-
         const readings: TenantReading[] = [];
         readingsSnap.forEach((readingDoc) => {
           const reading = readingDoc.data() as TenantReading;
-          reading.id = readingDoc.id
+          reading.tenantId = readingDoc.id
           readings.push(reading);
         });
 
@@ -106,5 +100,35 @@ export class UserHttpService {
           ...doc.data(),
         } as ITenant)
     );
+  }
+
+  async getLastReadings(userId: string): Promise<Map<string, number>> {
+    const lastReadings = new Map<string, number>();
+    
+    // Primero obtener todos los tenants para tener las lecturas iniciales
+    const tenants = await this.getTenants(userId);
+    tenants.forEach(tenant => {
+      lastReadings.set(tenant.firebaseId, tenant.initialReading);
+    });
+
+    // Luego buscar en el historial de lecturas por si hay más recientes
+    const billings = await this.getAllBillings(userId);
+    const years = Object.keys(billings).sort((a, b) => parseInt(b) - parseInt(a));
+
+    for (const year of years) {
+      const months = Object.keys(billings[year]).sort((a, b) => parseInt(b) - parseInt(a));
+      for (const month of months) {
+        const readings = billings[year][month].readings;
+        for (const reading of readings) {
+          // Actualizar solo si encontramos una lectura más reciente
+          lastReadings.set(reading.tenantId, reading.currentReading);
+          // Una vez que encontramos la primera lectura para un tenant, será la más reciente
+          // debido al orden descendente de años y meses
+        }
+      }
+    }
+
+    console.log('Final readings with fallback:', Object.fromEntries(lastReadings));
+    return lastReadings;
   }
 }

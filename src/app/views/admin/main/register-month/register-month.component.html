@@ -38,7 +38,7 @@
         {{ this.data.tenants[$index].name }} (Inquilino #{{ $index + 1 }})
       </div>
       <div class="text-sm text-gray-600">
-        Lectura anterior: <b>{{ this.data.tenants[$index].currentReading }} kwh</b>
+        Lectura anterior: <b>{{ tenant.get('previousReading')?.value }} kwh</b>
       </div>
 
       <div class="w-full text-center">
@@ -48,9 +48,13 @@
             matInput
             type="number"
             formControlName="newReading"
+            (input)="calculateConsumption($index)"
             placeholder="Lectura"
           />
         </mat-form-field>
+        <div class="text-sm">
+          Consumo: {{ tenant.get('consumption')?.value }} kwh
+        </div>
       </div>
     </div>
     } @empty {

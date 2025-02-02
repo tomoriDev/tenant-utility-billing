@@ -7,11 +7,9 @@
         <mat-panel-description>{{ currentYear }}</mat-panel-description>
       </mat-expansion-panel-header>
 
-      <app-month-detail
-        [monthDetail]="
-          dataService.mainData()!.data?.billing![currentYear]![month]
-        "
-      />
+      <ng-container *ngIf="(dataService.mainData()!.data?.billing)![currentYear] as yearData">
+        <app-month-detail [monthDetail]="yearData[month]" />
+      </ng-container>
       <button (click)="openRegisterMonthModal()">Agregar datos</button>
     </mat-expansion-panel>
   </div>

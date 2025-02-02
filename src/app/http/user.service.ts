@@ -104,31 +104,45 @@ export class UserHttpService {
 
   async getLastReadings(userId: string): Promise<Map<string, number>> {
     const lastReadings = new Map<string, number>();
-    
-    // Primero obtener todos los tenants para tener las lecturas iniciales
-    const tenants = await this.getTenants(userId);
-    tenants.forEach(tenant => {
-      lastReadings.set(tenant.firebaseId, tenant.initialReading);
-    });
-
-    // Luego buscar en el historial de lecturas por si hay más recientes
     const billings = await this.getAllBillings(userId);
+    
+    // Ordenar años de más reciente a más antiguo
     const years = Object.keys(billings).sort((a, b) => parseInt(b) - parseInt(a));
+    
+    if (years.length > 0) {
+      const lastYear = years[0];
+      const months = Object.keys(billings[lastYear]).sort((a, b) => parseInt(b) - parseInt(a));
+      
+      if (months.length > 0) {
+        const lastMonth = months[0];
+        const lastMonthData = billings[lastYear][lastMonth];
+        
+        console.log('Last month data:', {
+          year: lastYear,
+          month: lastMonth,
+          readings: lastMonthData.readings
+        });
 
-    for (const year of years) {
-      const months = Object.keys(billings[year]).sort((a, b) => parseInt(b) - parseInt(a));
-      for (const month of months) {
-        const readings = billings[year][month].readings;
-        for (const reading of readings) {
-          // Actualizar solo si encontramos una lectura más reciente
+        // Usar las lecturas del último mes registrado
+        lastMonthData.readings.forEach(reading => {
           lastReadings.set(reading.tenantId, reading.currentReading);
-          // Una vez que encontramos la primera lectura para un tenant, será la más reciente
-          // debido al orden descendente de años y meses
-        }
+        });
       }
     }
 
-    console.log('Final readings with fallback:', Object.fromEntries(lastReadings));
+    // Si no hay lecturas previas, usar las lecturas iniciales de los tenants
+    if (lastReadings.size === 0) {
+      const tenants = await this.getTenants(userId);
+      tenants.forEach(tenant => {
+        lastReadings.set(tenant.firebaseId, tenant.initialReading);
+      });
+    }
+
+    console.log('Final readings:', {
+      mappedReadings: Object.fromEntries(lastReadings),
+      fromBillings: years.length > 0
+    });
+
     return lastReadings;
   }
 }

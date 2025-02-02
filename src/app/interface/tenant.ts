@@ -42,3 +42,9 @@ export interface TenantReading {
   amount: number;
   readingDate: Date;
 }
+
+export interface MonthYear {
+  month: string;
+  year: string;
+  isRegistered?: boolean;
+}

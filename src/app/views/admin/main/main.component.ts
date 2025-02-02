@@ -10,6 +10,10 @@ import { UserHttpService } from '@app/http/user.service';
 import { BillingHttpService } from '@app/http/billing.service';
 import { MonthDetailComponent } from '@app/components/month-detail/month-detail.component';
 import { TenantService } from '@app/services/tenant.service';
+import { MonthYearPipe } from '@app/pipes/month-year.pipe';
+import { BehaviorSubject } from 'rxjs';
+import { MonthYear } from '@app/interface/tenant';
+
 @Component({
   selector: 'app-main',
   imports: [
@@ -17,6 +21,7 @@ import { TenantService } from '@app/services/tenant.service';
     CommonModule,
     MatExpansionModule,
     MonthDetailComponent,
+    MonthYearPipe
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss',
@@ -26,13 +31,17 @@ import { TenantService } from '@app/services/tenant.service';
 export default class MainComponent implements OnInit {
   formData?: any;
 
-  currentYear = 2025;
+  currentYear = new Date().getFullYear();
+  currentMonth = ('0' + (new Date().getMonth() + 1)).slice(-2); // Formato "01", "02", etc.
 
-  months = ['01', '02', '03'];
+  // Array de meses disponibles (podrías generarlo dinámicamente basado en el año)
+  months = Array.from({ length: 12 }, (_, i) => ('0' + (i + 1)).slice(-2));
 
   DataStatus = DataStatus;
 
   lastReadings = new Map<string, number>();
+
+  nextAvailableMonth$ = new BehaviorSubject<MonthYear | null>(null);
 
   constructor(
     private dialog: MatDialog,
@@ -42,11 +51,10 @@ export default class MainComponent implements OnInit {
     private tenantService: TenantService
   ) {}
 
-  ngOnInit(): void {
-    // this.openModal();
-    this.getUserData();
+  async ngOnInit(): Promise<void> {
+    await this.getUserData();
+    this.updateNextAvailableMonth();
   }
-
 
   async getUserData(): Promise<void> {
     this.dataService.setLoading(this.dataService.mainData);
@@ -92,7 +100,42 @@ export default class MainComponent implements OnInit {
     });
   }
 
-  openRegisterMonthModal(): void {
+  // Método para verificar si un mes ya tiene lecturas registradas
+  async isMonthRegistered(year: string, month: string): Promise<boolean> {
+    const billings = this.dataService.mainData().data?.billing || {};
+    return billings[year]?.hasOwnProperty(month) || false;
+  }
+
+  // Método para obtener el siguiente mes disponible
+  async getNextAvailableMonth(): Promise<{ month: string, year: string }> {
+    let year = this.currentYear.toString();
+    let month = this.currentMonth;
+
+    // Verificar si el mes actual ya está registrado
+    if (await this.isMonthRegistered(year, month)) {
+      // Buscar el siguiente mes disponible
+      for (let i = 0; i < 12; i++) {
+        month = ('0' + ((parseInt(month) % 12) + 1)).slice(-2);
+        if (month === '01') {
+          year = (parseInt(year) + 1).toString();
+        }
+        if (!(await this.isMonthRegistered(year, month))) {
+          break;
+        }
+      }
+    }
+
+    return { month, year };
+  }
+
+  private async updateNextAvailableMonth(): Promise<void> {
+    const nextMonth = await this.getNextAvailableMonth();
+    this.nextAvailableMonth$.next(nextMonth);
+  }
+
+  async openRegisterMonthModal(): Promise<void> {
+    const monthYear = await this.getNextAvailableMonth();
+    
     const dialogRef = this.dialog.open(RegisterMonthComponent, {
       width: '500px',
       disableClose: true,
@@ -100,10 +143,12 @@ export default class MainComponent implements OnInit {
       maxHeight: '90vh',
       data: {
         ...this.dataService.mainData().data,
-        month: '01',
-        year: '2025'
+        month: monthYear.month,
+        year: monthYear.year
       },
     });
+
+    console.log(this.dataService.mainData().data);
 
     dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
@@ -124,6 +169,7 @@ export default class MainComponent implements OnInit {
           );
           
           await this.getUserData();
+          this.updateNextAvailableMonth(); // Actualizar el próximo mes disponible
         } catch (error) {
           console.error('Error saving billing:', error);
         }

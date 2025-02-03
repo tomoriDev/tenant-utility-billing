@@ -26,21 +26,26 @@ export interface YearlyBilling {
 export interface MonthlyBill {
   totalAmount: number;
   totalKwh: number;
-  timestamp: Date;
   priceKwh: number;
   month?: string;  // Agregar para referencia
   year?: string;   // Agregar para referencia
   readings: TenantReading[];
+  expectedReadingDay?: number;    // Nuevo: día esperado para la lectura
+  hasIrregularReadings?: boolean; // Nuevo: indicador de lecturas fuera de fecha
 }
 
 export interface TenantReading {
   tenantId: string;
   name: string;
   currentReading: number;
-  previousReading: number;  // Agregar para referencia histórica
+  previousReading: number;
   consumption: number;
   amount: number;
-  readingDate: Date;
+  readingDate: Date;         // Fecha actual de lectura
+  previousReadingDate: Date; // Fecha de la lectura anterior o initialEmissionDate
+  daysInPeriod: number;
+  dailyConsumption: number;
+  isFirstReading: boolean;   // Para saber si es la primera lectura del tenant
 }
 
 export interface MonthYear {

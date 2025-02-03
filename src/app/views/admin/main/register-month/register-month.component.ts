@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { RegisterFormComponent } from '../register-form/register-form.component';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { UserHttpService } from '@app/http/user.service';
+import { ConsumptionCalculatorService } from '@app/services/consumption-calculator.service';
 
 @Component({
   selector: 'app-register-month',
@@ -50,12 +51,14 @@ export class RegisterMonthComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<RegisterFormComponent>,
     private userHttp: UserHttpService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private calculator: ConsumptionCalculatorService
   ) {
     this.registerForm = this.fb.group({
       totalAmountToPay: ['', Validators.required],
       kwhConsumption: ['', Validators.required],
-      tenants: this.fb.array([]),
+      readingDate: [new Date(), Validators.required],
+      tenants: this.fb.array([])
     });
   }
 
@@ -121,34 +124,75 @@ export class RegisterMonthComponent implements OnInit {
     group.get('consumption')?.setValue(newReading - previousReading);
   }
 
+  private toDate(value: any): Date {
+    if (value instanceof Date) {
+      return value;
+    }
+    return new Date(value);
+  }
+
   onSubmit(): void {
+    console.log(this.data)
     if (this.registerForm.valid) {
-      const { totalAmountToPay, kwhConsumption } = this.registerForm.value;
+
+      const { totalAmountToPay, kwhConsumption, readingDate } = this.registerForm.value;
       const pricePerKwh = +(totalAmountToPay / kwhConsumption).toFixed(3);
+
+      const readings = this.data.tenants.map((tenant: any, index: number) => {
+        const formGroup = this.tenants.at(index);
+        const newReading = Number(formGroup.get('newReading')?.value);
+        const previousReading = Number(formGroup.get('previousReading')?.value);
+
+        // Buscar la última lectura registrada
+        const prevMonth = (parseInt(this.data.month, 10) - 1).toString().padStart(2, '0');
+        const lastReading = this.data.billing?.[this.data.year]?.[prevMonth]
+          ?.readings?.find((r: any) => r.tenantId === tenant.firebaseId);
+
+        console.log(tenant)
+
+        // Si existe lastReading, usar su readingDate; de lo contrario, usar initialEmissionDate
+        const previousReadingDate = lastReading
+          ? lastReading.readingDate
+          : tenant.initialEmissionDate;
+
+        const prevDateCalc = previousReadingDate?.toDate
+          ? previousReadingDate.toDate()
+          : new Date(previousReadingDate);
+
+        const currentReadingDate = readingDate || new Date();
+        const currDateCalc = currentReadingDate?.toDate
+          ? currentReadingDate.toDate()
+          : new Date(currentReadingDate);
+
+        // Cálculo
+        const metrics = this.calculator.calculateConsumptionMetrics(
+          prevDateCalc,
+          newReading,
+          previousReading,
+          currDateCalc,
+          pricePerKwh
+        );
+
+        // Retorno en crudo, sin convertir a Timestamp. Esto se hará en billing.service
+        return {
+          tenantId: tenant.firebaseId,
+          name: tenant.name,
+          currentReading: newReading,
+          previousReading,
+          readingDate: currDateCalc,
+          previousReadingDate: prevDateCalc,
+          isFirstReading: !lastReading,
+          ...metrics
+        };
+      });
 
       this.dialogRef.close({
         totalAmountToPay: Number(totalAmountToPay),
         totalKwhConsumption: Number(kwhConsumption),
         pricePerKwh,
+        readings,
         month: this.data.month,
         year: this.data.year,
-        readings: this.data.tenants.map((tenant: any, index: number) => {
-          const formGroup = this.tenants.at(index);
-          const consumption = formGroup.get('consumption')?.value || 0;
-          const previousReading = formGroup.get('previousReading')?.value || 0;
-          const currentReading = Number(formGroup.get('newReading')?.value);
-          
-          return {
-            tenantId: tenant.firebaseId,
-            name: tenant.name,
-            previousReading,
-            currentReading,
-            consumption: Number(consumption),
-            amount: +(consumption * pricePerKwh).toFixed(2),
-            readingDate: new Date()
-          };
-        }),
-        timestamp: new Date()
       });
     }
   }

@@ -12,7 +12,7 @@ import { MonthDetailComponent } from '@app/components/month-detail/month-detail.
 import { TenantService } from '@app/services/tenant.service';
 import { MonthYearPipe } from '@app/pipes/month-year.pipe';
 import { BehaviorSubject } from 'rxjs';
-import { MonthYear } from '@app/interface/tenant';
+import { MonthlyBill, MonthYear } from '@app/interface/tenant';
 
 @Component({
   selector: 'app-main',
@@ -52,6 +52,7 @@ export default class MainComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    // this.openModal();
     await this.getUserData();
     this.updateNextAvailableMonth();
   }
@@ -133,9 +134,21 @@ export default class MainComponent implements OnInit {
     this.nextAvailableMonth$.next(nextMonth);
   }
 
-  async openRegisterMonthModal(): Promise<void> {
-    const monthYear = await this.getNextAvailableMonth();
-    
+  async openRegisterMonthModal(reqMonth?: string, reqYear?: number): Promise<void> {
+    let chosenMonth: string;
+    let chosenYear: string;
+
+    if (reqMonth && reqYear) {
+      // El usuario selecciona el mes y el año manualmente
+      chosenMonth = reqMonth;
+      chosenYear = reqYear.toString();
+    } else {
+      // Lógica existente para calcular el siguiente mes disponible
+      const monthYear = await this.getNextAvailableMonth();
+      chosenMonth = monthYear.month;
+      chosenYear = monthYear.year;
+    }
+
     const dialogRef = this.dialog.open(RegisterMonthComponent, {
       width: '500px',
       disableClose: true,
@@ -143,37 +156,54 @@ export default class MainComponent implements OnInit {
       maxHeight: '90vh',
       data: {
         ...this.dataService.mainData().data,
-        month: monthYear.month,
-        year: monthYear.year
+        month: chosenMonth,
+        year: chosenYear
       },
     });
-
-    console.log(this.dataService.mainData().data);
 
     dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
         try {
           await this.billingHttp.setMonthlyBilling(
-            '123', 
-            result.year, 
-            result.month, 
+            '123',
+            result.year,
+            result.month,
             {
               totalAmount: result.totalAmountToPay,
               totalKwh: result.totalKwhConsumption,
               priceKwh: result.pricePerKwh,
               readings: result.readings,
-              timestamp: result.timestamp,
               month: result.month,
               year: result.year
             }
           );
-          
           await this.getUserData();
-          this.updateNextAvailableMonth(); // Actualizar el próximo mes disponible
+          this.updateNextAvailableMonth();
         } catch (error) {
           console.error('Error saving billing:', error);
         }
       }
     });
+  }
+
+  public convertTimestamps(monthBill: MonthlyBill): MonthlyBill {
+    if (!monthBill || !monthBill.readings) return monthBill;
+    const fixedReadings = monthBill.readings.map((reading) => {
+      return {
+        ...reading,
+        readingDate: this.toValidDate(reading.readingDate),
+        previousReadingDate: this.toValidDate(reading.previousReadingDate),
+      };
+    });
+    return { ...monthBill, readings: fixedReadings };
+  }
+
+  private toValidDate(value: any): Date {
+    if (value instanceof Date) return value;
+    if (value && typeof value === 'object' && 'seconds' in value) {
+      return new Date(value.seconds * 1000);
+    }
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? new Date() : d;
   }
 }

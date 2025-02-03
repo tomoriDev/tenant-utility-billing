@@ -27,6 +27,15 @@
     </mat-form-field>
   </div>
 
+  <div class="w-full text-center">
+    <mat-form-field appearance="fill" class="w-4/5">
+      <mat-label>Fecha de lectura</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="readingDate" />
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
   <div formArrayName="tenants" class="max-h-[54svh] overflow-y-auto">
     @for (tenant of tenants.controls; track $index) {
     <hr />
@@ -77,7 +86,6 @@
       mat-raised-button
       color="primary"
       type="submit"
-      [disabled]="!tenants.valid"
       class="w-full sm:w-auto"
     >
       <mat-icon class="mr-2">save</mat-icon>

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
 import { MonthlyBill } from '../interface/tenant';
+import { Timestamp } from 'firebase/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -27,7 +28,6 @@ export class BillingHttpService {
           totalAmount: Number(data.totalAmount),
           totalKwh: Number(data.totalKwh),
           priceKwh: Number(data.priceKwh),
-          timestamp: data.timestamp,
           month: month,
           year: year
         },
@@ -45,7 +45,17 @@ export class BillingHttpService {
               previousReading: Number(reading.previousReading),
               consumption: Number(reading.consumption),
               amount: Number(reading.amount),
-              readingDate: reading.readingDate
+              readingDate: Timestamp.fromDate(
+                reading.readingDate instanceof Date
+                  ? reading.readingDate
+                  : new Date()
+              ),
+              previousReadingDate: Timestamp.fromDate(
+                reading.previousReadingDate instanceof Date
+                  ? reading.previousReadingDate
+                  : new Date()
+              ),
+              isFirstReading: reading.isFirstReading || false
             })
           )
         );

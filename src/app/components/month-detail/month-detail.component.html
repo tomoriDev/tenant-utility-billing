@@ -24,18 +24,37 @@
 
   @for (reading of monthDetail().readings; track reading) {
   <hr class="my-3" />
-  <div class="flex flex-row justify-between align-middle items-center">
-    <div class="flex flex-col">
-      <span class="text-gray-500 text-sm"> {{ reading.name }} </span>
-      <span class="text-lg font-semibold text-gray-800">
-        {{ reading.consumption }} Kwh
-      </span>
+  <div class="flex flex-col gap-2">
+    <!-- Información del inquilino y consumo -->
+    <div class="flex flex-row justify-between align-middle items-center">
+      <div class="flex flex-col">
+        <span class="text-gray-500 text-sm"> {{ reading.name }} </span>
+        <span class="text-lg font-semibold text-gray-800">
+          {{ reading.consumption }} Kwh
+        </span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-lg font-semibold text-gray-800">
+          S/ {{ reading.amount }}
+        </span>
+      </div>
     </div>
 
-    <div class="flex flex-col">
-      <span class="text-lg font-semibold text-gray-800">
-        S/ {{ reading.amount }}
-      </span>
+    <!-- Nueva sección para fecha y días -->
+    <div class="flex flex-row justify-between text-sm text-gray-600">
+      <div>
+        Fecha de lectura: {{ reading.readingDate | date }}
+      </div>
+      <div>
+        <span [class.text-amber-600]="reading.daysInPeriod !== 30">
+          {{ reading.daysInPeriod }} días transcurridos
+        </span>
+        @if (reading.daysInPeriod !== 30) {
+          <div class="text-xs text-amber-600">
+            Consumo diario: {{ reading.dailyConsumption.toFixed(2) }} Kwh/día
+          </div>
+        }
+      </div>
     </div>
   </div>
   } @empty {

@@ -38,6 +38,13 @@ export class UserHttpService {
     } as any;
   }
 
+  private toUTCDate(value: any): Date {
+    // Igual que en los demás sitios
+    const d = value instanceof Date ? value : new Date(value);
+    if (isNaN(d.getTime())) return new Date(Date.UTC(1970, 0, 1));
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  }
+
   private async getYearlyBilling(
     userId: string,
     year: string
@@ -57,7 +64,8 @@ export class UserHttpService {
         const readings: TenantReading[] = [];
         readingsSnap.forEach((readingDoc) => {
           const reading = readingDoc.data() as TenantReading;
-          reading.tenantId = readingDoc.id
+          reading.tenantId = readingDoc.id;
+          // No convertir a Date: conservarlo como Timestamp
           readings.push(reading);
         });
 

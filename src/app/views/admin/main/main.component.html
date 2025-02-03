@@ -16,9 +16,9 @@
       </mat-expansion-panel-header>
 
       <ng-container *ngIf="(dataService.mainData()!.data?.billing)![currentYear] as yearData">
-        <app-month-detail [monthDetail]="yearData[month]" />
+        <app-month-detail [monthDetail]="convertTimestamps(yearData[month])"></app-month-detail>
       </ng-container>
-      <button (click)="openRegisterMonthModal()">Agregar datos</button>
+      <button (click)="openRegisterMonthModal(month, currentYear)">Agregar datos</button>
     </mat-expansion-panel>
   </div>
   {{ month | json }}

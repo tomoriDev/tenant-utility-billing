@@ -9,6 +9,7 @@ import {
   getDocs,
 } from '@angular/fire/firestore';
 import { ITenant } from '../interface/tenant';
+import { Timestamp } from 'firebase/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -28,8 +29,8 @@ export class TenantService {
       name: tenantData.name || '',
       initialReading: tenantData.initialReading || 0,
       createdAt: new Date(),
-      active: true, // Nuevo campo para controlar si el tenant está activo
-      initialEmissionDate: tenantData.initialEmissionDate || new Date(),
+      active: true,
+      initialEmissionDate: tenantData.initialEmissionDate!,
     };
 
     await setDoc(newTenantRef, tenant);
@@ -45,7 +46,10 @@ export class TenantService {
       this.firestore,
       `users/${userId}/tenants/${tenantId}`
     );
-    await updateDoc(tenantRef, { ...data, updatedAt: new Date() });
+    await updateDoc(tenantRef, {
+      ...data,
+      updatedAt: Timestamp.fromDate(new Date()),
+    });
   }
 
   async deactivateTenant(userId: string, tenantId: string): Promise<void> {

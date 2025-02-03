@@ -45,6 +45,8 @@ export class RegisterMonthComponent implements OnInit {
   registerForm: FormGroup;
 
   lastReadings = new Map<string, number>();
+  isEditMode = false;
+  existingBilling: any = null;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -54,9 +56,12 @@ export class RegisterMonthComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private calculator: ConsumptionCalculatorService
   ) {
+    this.existingBilling = data?.billing?.[data.year]?.[data.month];
+    this.isEditMode = !!this.existingBilling;
+
     this.registerForm = this.fb.group({
-      totalAmountToPay: ['', Validators.required],
-      kwhConsumption: ['', Validators.required],
+      totalAmountToPay: [this.existingBilling?.totalAmount || '', Validators.required],
+      kwhConsumption: [this.existingBilling?.totalKwh || '', Validators.required],
       readingDate: [new Date(), Validators.required],
       tenants: this.fb.array([])
     });
@@ -69,8 +74,12 @@ export class RegisterMonthComponent implements OnInit {
   }
 
   async loadLastReadings() {
-    this.lastReadings = await this.userHttp.getLastReadings('123');
-    console.log('Last readings loaded:', this.lastReadings);
+    this.lastReadings = await this.userHttp.getPreviousMonthReadings(
+      '123',
+      this.data.year,
+      this.data.month
+    );
+    console.log('Previous month readings:', this.lastReadings);
   }
 
   get tenants(): FormArray {
@@ -80,21 +89,22 @@ export class RegisterMonthComponent implements OnInit {
   setTenants(): void {
     if (this.data?.tenants) {
       this.data.tenants.forEach((tenant: any) => {
-        // Obtener la última lectura o usar la lectura inicial del tenant
+        // Si estamos editando, buscar la lectura existente
+        const existingReading = this.existingBilling?.readings?.find(
+          (r: any) => r.tenantId === tenant.firebaseId
+        );
+
         const lastReading = this.lastReadings.get(tenant.firebaseId) ?? tenant.initialReading ?? 0;
         
-        console.log(`Setting up tenant ${tenant.name}:`, {
-          firebaseId: tenant.firebaseId,
-          lastReading,
-          initialReading: tenant.initialReading,
-          fromLastReadings: this.lastReadings.get(tenant.firebaseId)
-        });
-
         this.tenants.push(
           this.fb.group({
-            newReading: ['', [Validators.required, Validators.min(lastReading)]],
+            newReading: [
+              existingReading?.currentReading || '',
+              [Validators.required, Validators.min(lastReading)]
+            ],
             previousReading: [{ value: lastReading, disabled: true }],
-            consumption: [{ value: 0, disabled: true }],
+            consumption: [{ value: existingReading?.consumption || 0, disabled: true }],
+            readingDate: [existingReading?.readingDate || new Date()]
           })
         );
       });

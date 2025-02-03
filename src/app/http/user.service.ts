@@ -153,4 +153,47 @@ export class UserHttpService {
 
     return lastReadings;
   }
+
+  async getPreviousMonthReadings(
+    userId: string,
+    year: string,
+    month: string
+  ): Promise<Map<string, number>> {
+    const lastReadings = new Map<string, number>();
+    const billings = await this.getAllBillings(userId);
+    
+    const currentMonth = parseInt(month);
+    const currentYear = parseInt(year);
+
+    // Si es enero, buscar en diciembre del año anterior
+    if (currentMonth === 1) {
+      const prevYear = (currentYear - 1).toString();
+      const readings = billings[prevYear]?.['12']?.readings;
+      if (readings) {
+        readings.forEach(reading => {
+          lastReadings.set(reading.tenantId, reading.currentReading);
+        });
+        return lastReadings;
+      }
+    }
+
+    // Buscar en el mes anterior del mismo año
+    const prevMonth = (currentMonth - 1).toString().padStart(2, '0');
+    const readings = billings[year]?.[prevMonth]?.readings;
+    
+    if (readings) {
+      readings.forEach(reading => {
+        lastReadings.set(reading.tenantId, reading.currentReading);
+      });
+      return lastReadings;
+    }
+
+    // Si no hay lecturas previas, usar las lecturas iniciales de los tenants
+    const tenants = await this.getTenants(userId);
+    tenants.forEach(tenant => {
+      lastReadings.set(tenant.firebaseId, tenant.initialReading);
+    });
+
+    return lastReadings;
+  }
 }

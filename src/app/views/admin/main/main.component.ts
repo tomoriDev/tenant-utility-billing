@@ -162,7 +162,8 @@ export default class MainComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(async (result: any) => {
-      if (result) {
+      console.log(result);
+      if (result && result.save) {
         try {
           await this.billingHttp.setMonthlyBilling(
             '123',

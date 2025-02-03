@@ -134,13 +134,6 @@ export class RegisterMonthComponent implements OnInit {
     group.get('consumption')?.setValue(newReading - previousReading);
   }
 
-  private toDate(value: any): Date {
-    if (value instanceof Date) {
-      return value;
-    }
-    return new Date(value);
-  }
-
   onSubmit(): void {
     console.log(this.data)
     if (this.registerForm.valid) {
@@ -197,6 +190,7 @@ export class RegisterMonthComponent implements OnInit {
       });
 
       this.dialogRef.close({
+        save: true,
         totalAmountToPay: Number(totalAmountToPay),
         totalKwhConsumption: Number(kwhConsumption),
         pricePerKwh,
